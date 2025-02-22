@@ -1,45 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"time"
+	"urlshortener/handlers"
 )
 
-// Handler for the root route
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("Welcome to the URL Shortener Service!"))
-}
-
 func main() {
-	// Setup environment variables, if any (e.g., for PORT)
-	port := getPort()
-
 	// Setup routes
-	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/shorten", handlers.ShortenHandler)
+	http.HandleFunc("/", handlers.RedirectHandler)
 
-	// Start the server
-	server := &http.Server{
-		Addr:         fmt.Sprintf(":%s", port),
-		Handler:      nil,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
+	// Start periodic cleanup (optional)
+	go handlers.CleanupExpiredURLs()
 
-	log.Printf("Server is starting on port %s...", port)
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Error starting server: %v", err)
-	}
-}
-
-// getPort retrieves the port from an environment variable or defaults to 8080
-func getPort() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	return port
+	// Run the HTTP server
+	http.ListenAndServe(":8080", nil)
 }

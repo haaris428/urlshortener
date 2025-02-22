@@ -1,3 +1,3 @@
-module urlShortener
+module urlshortener
 
 go 1.17
